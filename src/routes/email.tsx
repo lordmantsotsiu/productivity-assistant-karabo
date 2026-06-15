@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { generateEmail } from "@/lib/ai.functions";
 import { bumpStat, getMemoryContext, useLocal, KEYS, type MemoryItem } from "@/lib/store";
+import { toastServerError } from "@/lib/error-messages";
 import {
   PageHeader,
   HumanLoopNotice,
@@ -60,10 +61,7 @@ function EmailPage() {
       setOutput(res.text);
       bumpStat("emailsDrafted");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to generate";
-      if (msg.includes("429")) toast.error("Rate limit reached. Try again shortly.");
-      else if (msg.includes("402")) toast.error("AI credits exhausted. Add credits to continue.");
-      else toast.error(msg);
+      toastServerError(e, "Couldn't generate the email. Please try again.");
     } finally {
       setLoading(false);
     }

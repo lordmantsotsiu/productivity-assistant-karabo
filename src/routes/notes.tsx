@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { toastServerError } from "@/lib/error-messages";
 import { summarizeNotes } from "@/lib/ai.functions";
 import { addTask, bumpStat, getMemoryContext } from "@/lib/store";
 import {
@@ -128,10 +129,7 @@ function NotesPage() {
       setResult(res);
       bumpStat("notesSummarized");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to summarize";
-      if (msg.includes("429")) toast.error("Rate limit reached.");
-      else if (msg.includes("402")) toast.error("AI credits exhausted.");
-      else toast.error(msg);
+      toastServerError(e, "Couldn't summarize the notes. Please try again.");
     } finally {
       setLoading(false);
     }

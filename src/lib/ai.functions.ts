@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { requireSameOrigin } from "./same-origin.middleware";
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -19,6 +20,7 @@ const EmailInput = z.object({
 });
 
 export const generateEmail = createServerFn({ method: "POST" })
+  .middleware([requireSameOrigin])
   .inputValidator((d: unknown) => EmailInput.parse(d))
   .handler(async ({ data }) => {
     const gateway = getGateway();
@@ -40,6 +42,7 @@ const SummarizeInput = z.object({
 });
 
 export const summarizeNotes = createServerFn({ method: "POST" })
+  .middleware([requireSameOrigin])
   .inputValidator((d: unknown) => SummarizeInput.parse(d))
   .handler(async ({ data }) => {
     const gateway = getGateway();
@@ -81,6 +84,7 @@ const PrioritizeInput = z.object({
 });
 
 export const prioritizeTasks = createServerFn({ method: "POST" })
+  .middleware([requireSameOrigin])
   .inputValidator((d: unknown) => PrioritizeInput.parse(d))
   .handler(async ({ data }) => {
     const gateway = getGateway();
@@ -121,6 +125,7 @@ const CoachInput = z.object({
 });
 
 export const coachReply = createServerFn({ method: "POST" })
+  .middleware([requireSameOrigin])
   .inputValidator((d: unknown) => CoachInput.parse(d))
   .handler(async ({ data }) => {
     const gateway = getGateway();
@@ -153,6 +158,7 @@ const ReplyInput = z.object({
 });
 
 export const suggestReplies = createServerFn({ method: "POST" })
+  .middleware([requireSameOrigin])
   .inputValidator((d: unknown) => ReplyInput.parse(d))
   .handler(async ({ data }) => {
     const gateway = getGateway();
