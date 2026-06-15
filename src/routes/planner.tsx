@@ -238,6 +238,9 @@ function Section({
                 {t.due ? (
                   <div className="text-[11px] text-muted-foreground">
                     Due {new Date(t.due).toLocaleDateString()}
+                    {t.due.includes("T")
+                      ? ` · ${new Date(t.due).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                      : ""}
                   </div>
                 ) : null}
               </div>
