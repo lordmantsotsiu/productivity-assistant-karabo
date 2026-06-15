@@ -106,3 +106,28 @@ export const prioritizeTasks = createServerFn({ method: "POST" })
     }
     return parsed;
   });
+
+const CoachInput = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(4000),
+      }),
+    )
+    .min(1)
+    .max(40),
+});
+
+export const coachReply = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => CoachInput.parse(d))
+  .handler(async ({ data }) => {
+    const gateway = getGateway();
+    const { text } = await generateText({
+      model: gateway(MODEL),
+      system:
+        "You are Karabo, a warm, encouraging workplace well-being and productivity coach. You help users navigate workplace stress, task paralysis, burnout, and feeling overwhelmed. Be deeply empathetic but professional. Always offer 1-3 small, concrete, actionable steps the user can take right now to regain focus, manage anxiety, or return to a balanced workflow. Keep replies concise (under 180 words), kind, and grounded. Never give medical advice; gently suggest professional support when appropriate.",
+      messages: data.messages.map((m) => ({ role: m.role, content: m.content })),
+    });
+    return { text };
+  });

@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Brain,
   Sparkles,
+  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ const items = [
   { to: "/email", label: "Email Generator", icon: Mail },
   { to: "/notes", label: "Notes Summarizer", icon: FileText },
   { to: "/planner", label: "Task Planner", icon: CalendarDays },
+  { to: "/coach", label: "Coach Karabo", icon: Heart },
   { to: "/memory", label: "Context Memory", icon: Brain },
 ];
 
