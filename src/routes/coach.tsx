@@ -8,6 +8,7 @@ import { PageHeader, detectPII, PIIWarning, HumanLoopNotice } from "@/components
 import { coachReply } from "@/lib/ai.functions";
 import { useLocal, getUserSnapshot } from "@/lib/store";
 import { toast } from "sonner";
+import { toastServerError } from "@/lib/error-messages";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -102,10 +103,7 @@ function CoachPage() {
       });
       setMessages((m) => [...m, { role: "assistant", content: res.text }]);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed";
-      if (msg.includes("429")) toast.error("Karabo needs a moment — rate limit reached.");
-      else if (msg.includes("402")) toast.error("AI credits exhausted.");
-      else toast.error(msg);
+      toastServerError(e, "Karabo couldn't respond just now. Please try again.");
     } finally {
       setLoading(false);
     }
