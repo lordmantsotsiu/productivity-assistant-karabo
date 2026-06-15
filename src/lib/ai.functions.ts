@@ -144,3 +144,56 @@ Style and structure rules:
     });
     return { text };
   });
+
+const ReplyInput = z.object({
+  email: z.string().min(10).max(8000),
+  tone: z.string().min(1).max(40).optional().default("Professional"),
+  intent: z.string().max(400).optional().default(""),
+  context: z.string().max(2000).optional().default(""),
+});
+
+export const suggestReplies = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => ReplyInput.parse(d))
+  .handler(async ({ data }) => {
+    const gateway = getGateway();
+    const ctxBlock = data.context
+      ? `\n\nSaved user context (apply only if relevant):\n${data.context}`
+      : "";
+    const intentBlock = data.intent
+      ? `\n\nThe user wants the reply to: ${data.intent}`
+      : "";
+    const { text } = await generateText({
+      model: gateway(MODEL),
+      system:
+        "You read inbound emails and propose ready-to-send replies. Respond ONLY in strict JSON — no markdown fences, no commentary.",
+      prompt: `Read the email below and produce 3 distinct reply drafts. Each draft has a short label, a 1-line strategy, and a complete reply body (no Subject line, no greeting placeholders like [Name] — use what you can infer from the email, otherwise use a neutral greeting). Also summarize the email in 1–2 sentences and list any concrete asks the sender made.
+
+Tone preference: ${data.tone}${intentBlock}${ctxBlock}
+
+Return JSON exactly in this shape:
+{
+  "summary": "1–2 sentence summary of the inbound email",
+  "asks": ["concrete ask 1", "concrete ask 2"],
+  "replies": [
+    { "label": "Short label (e.g. Accept & propose time)", "strategy": "1-line strategy", "body": "Full reply body" }
+  ]
+}
+
+Inbound email:
+"""
+${data.email}
+"""`,
+    });
+    let parsed: {
+      summary: string;
+      asks: string[];
+      replies: { label: string; strategy: string; body: string }[];
+    } = { summary: "", asks: [], replies: [] };
+    try {
+      const cleaned = text.replace(/```json|```/g, "").trim();
+      parsed = JSON.parse(cleaned);
+    } catch {
+      parsed.summary = text;
+    }
+    return parsed;
+  });

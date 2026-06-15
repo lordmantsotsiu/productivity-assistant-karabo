@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReplyRouteImport } from './routes/reply'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as MemoryRouteImport } from './routes/memory'
@@ -16,6 +17,11 @@ import { Route as EmailRouteImport } from './routes/email'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ReplyRoute = ReplyRouteImport.update({
+  id: '/reply',
+  path: '/reply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlannerRoute = PlannerRouteImport.update({
   id: '/planner',
   path: '/planner',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/memory': typeof MemoryRoute
   '/notes': typeof NotesRoute
   '/planner': typeof PlannerRoute
+  '/reply': typeof ReplyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/memory': typeof MemoryRoute
   '/notes': typeof NotesRoute
   '/planner': typeof PlannerRoute
+  '/reply': typeof ReplyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,29 @@ export interface FileRoutesById {
   '/memory': typeof MemoryRoute
   '/notes': typeof NotesRoute
   '/planner': typeof PlannerRoute
+  '/reply': typeof ReplyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/coach' | '/email' | '/memory' | '/notes' | '/planner'
+  fullPaths:
+    | '/'
+    | '/coach'
+    | '/email'
+    | '/memory'
+    | '/notes'
+    | '/planner'
+    | '/reply'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/coach' | '/email' | '/memory' | '/notes' | '/planner'
-  id: '__root__' | '/' | '/coach' | '/email' | '/memory' | '/notes' | '/planner'
+  to: '/' | '/coach' | '/email' | '/memory' | '/notes' | '/planner' | '/reply'
+  id:
+    | '__root__'
+    | '/'
+    | '/coach'
+    | '/email'
+    | '/memory'
+    | '/notes'
+    | '/planner'
+    | '/reply'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -87,10 +111,18 @@ export interface RootRouteChildren {
   MemoryRoute: typeof MemoryRoute
   NotesRoute: typeof NotesRoute
   PlannerRoute: typeof PlannerRoute
+  ReplyRoute: typeof ReplyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reply': {
+      id: '/reply'
+      path: '/reply'
+      fullPath: '/reply'
+      preLoaderRoute: typeof ReplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/planner': {
       id: '/planner'
       path: '/planner'
@@ -143,6 +175,7 @@ const rootRouteChildren: RootRouteChildren = {
   MemoryRoute: MemoryRoute,
   NotesRoute: NotesRoute,
   PlannerRoute: PlannerRoute,
+  ReplyRoute: ReplyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

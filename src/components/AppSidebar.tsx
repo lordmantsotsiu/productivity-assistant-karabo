@@ -7,12 +7,14 @@ import {
   Brain,
   Sparkles,
   Heart,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/email", label: "Email Generator", icon: Mail },
+  { to: "/reply", label: "Reply Assistant", icon: Inbox },
   { to: "/notes", label: "Notes Summarizer", icon: FileText },
   { to: "/planner", label: "Task Planner", icon: CalendarDays },
   { to: "/coach", label: "Coach Karabo", icon: Heart },
