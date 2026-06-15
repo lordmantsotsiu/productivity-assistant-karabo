@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader, detectPII, PIIWarning, HumanLoopNotice } from "@/components/Disclaimers";
 import { coachReply } from "@/lib/ai.functions";
-import { useLocal } from "@/lib/store";
+import { useLocal, getUserSnapshot } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export const Route = createFileRoute("/coach")({
   head: () => ({
@@ -92,7 +94,12 @@ function CoachPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fn({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
+      const res = await fn({
+        data: {
+          messages: next.map((m) => ({ role: m.role, content: m.content })),
+          context: getUserSnapshot(),
+        },
+      });
       setMessages((m) => [...m, { role: "assistant", content: res.text }]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed";
