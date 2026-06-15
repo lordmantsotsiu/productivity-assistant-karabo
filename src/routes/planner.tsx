@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { toastServerError } from "@/lib/error-messages";
 import {
   useLocal,
   KEYS,
@@ -107,10 +108,7 @@ function PlannerPage() {
       setStrategy(res.strategy);
       toast.success("Reprioritized with AI");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed";
-      if (msg.includes("429")) toast.error("Rate limit reached.");
-      else if (msg.includes("402")) toast.error("AI credits exhausted.");
-      else toast.error(msg);
+      toastServerError(e, "Couldn't reprioritize tasks. Please try again.");
     } finally {
       setLoading(false);
     }
