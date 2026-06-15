@@ -79,10 +79,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CAPACITI — AI Workplace Productivity Assistant" },
+      { title: "Karabo — AI Workplace Productivity Assistant" },
       { name: "description", content: "AI-powered email drafting, meeting summaries, task planning, and context memory for modern teams." },
-      { name: "author", content: "CAPACITI" },
-      { property: "og:title", content: "CAPACITI — AI Workplace Productivity Assistant" },
+      { property: "og:title", content: "Karabo — AI Workplace Productivity Assistant" },
       { property: "og:description", content: "AI-powered email drafting, meeting summaries, task planning, and context memory for modern teams." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

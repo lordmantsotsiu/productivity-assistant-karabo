@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/planner")({
   head: () => ({
     meta: [
-      { title: "AI Task Planner — CAPACITI" },
+      { title: "AI Task Planner — Karabo" },
       { name: "description", content: "Plan, prioritize, and reorder tasks with AI." },
     ],
   }),

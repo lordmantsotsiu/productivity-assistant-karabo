@@ -25,7 +25,7 @@ import {
 export const Route = createFileRoute("/notes")({
   head: () => ({
     meta: [
-      { title: "Meeting Notes Summarizer — CAPACITI" },
+      { title: "Meeting Notes Summarizer — Karabo" },
       { name: "description", content: "Summarize meetings and extract action items with AI." },
     ],
   }),

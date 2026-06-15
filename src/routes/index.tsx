@@ -16,7 +16,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — CAPACITI Workplace AI" },
+      { title: "Dashboard — Karabo Workspace AI" },
       { name: "description", content: "Your AI-powered workplace command center: stats, quick actions, and responsible AI guidance." },
     ],
   }),
@@ -116,8 +116,8 @@ function Index() {
           <div className="min-w-0">
             <h3 className="font-semibold">Responsible AI Disclaimer</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              CAPACITI generates suggestions to support your work — not replace
-              your judgment. AI output may contain inaccuracies, omissions, or
+              This assistant generates suggestions to support your work — not
+              replace your judgment. AI output may contain inaccuracies, omissions, or
               bias. Always review, verify sources, and protect sensitive data
               before sharing. You remain the human-in-the-loop.
             </p>

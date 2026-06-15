@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/memory")({
   head: () => ({
     meta: [
-      { title: "Context Memory — CAPACITI" },
+      { title: "Context Memory — Karabo" },
       { name: "description", content: "Save persistent context the AI will apply to your work." },
     ],
   }),
