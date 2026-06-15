@@ -82,3 +82,36 @@ export function getMemoryContext(): string {
   const m = read<MemoryItem[]>(KEYS.memory, []);
   return m.map((x) => `- ${x.text}`).join("\n");
 }
+
+export function getUserSnapshot(): string {
+  const tasks = read<Task[]>(KEYS.tasks, []);
+  const memory = read<MemoryItem[]>(KEYS.memory, []);
+  const stats = read<Stats>(KEYS.stats, { emailsDrafted: 0, notesSummarized: 0 });
+
+  const open = tasks.filter((t) => !t.done);
+  const done = tasks.filter((t) => t.done);
+  const fmt = (t: Task) =>
+    `  - ${t.title}${t.due ? ` (due ${t.due})` : ""}${t.priority ? ` [${t.priority}]` : ""}`;
+
+  const parts: string[] = [];
+  parts.push(`Today is ${new Date().toDateString()}.`);
+  parts.push(
+    `Activity so far: ${stats.emailsDrafted} email${stats.emailsDrafted === 1 ? "" : "s"} drafted, ${stats.notesSummarized} meeting note${stats.notesSummarized === 1 ? "" : "s"} summarized.`,
+  );
+  parts.push(
+    `Open tasks (${open.length}):${open.length ? "\n" + open.slice(0, 20).map(fmt).join("\n") : " none"}`,
+  );
+  if (done.length) {
+    parts.push(
+      `Recently completed (${done.length}):\n${done.slice(-5).map(fmt).join("\n")}`,
+    );
+  }
+  if (memory.length) {
+    parts.push(
+      `Saved context memory:\n${memory.map((m) => `  - ${m.text}`).join("\n")}`,
+    );
+  } else {
+    parts.push("Saved context memory: none yet.");
+  }
+  return parts.join("\n\n");
+}
