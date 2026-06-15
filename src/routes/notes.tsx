@@ -60,8 +60,10 @@ function NotesPage() {
         let text = "";
         if (name.endsWith(".pdf")) {
           const pdfjs = await import("pdfjs-dist");
-          // @ts-expect-error vite worker import
-          const worker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
+          const worker = await import(
+            // @ts-ignore vite worker url import
+            "pdfjs-dist/build/pdf.worker.mjs?url"
+          );
           pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
           const buf = await file.arrayBuffer();
           const doc = await pdfjs.getDocument({ data: buf }).promise;
@@ -77,7 +79,8 @@ function NotesPage() {
           }
           text = pages.join("\n\n");
         } else if (name.endsWith(".docx")) {
-          const mammoth = await import("mammoth/mammoth.browser");
+          // @ts-ignore no types for browser bundle
+          const mammoth = await import("mammoth/mammoth.browser.js");
           const buf = await file.arrayBuffer();
           const res = await mammoth.extractRawText({ arrayBuffer: buf });
           text = res.value;
