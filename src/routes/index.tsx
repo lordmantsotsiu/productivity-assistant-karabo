@@ -10,6 +10,7 @@ import {
   Sparkles,
   CheckCircle2,
   Clock,
+  Heart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -44,6 +45,7 @@ function Index() {
     { to: "/email", label: "Draft an Email", desc: "Tone-aware drafts in seconds", icon: Mail },
     { to: "/notes", label: "Summarize Meeting", desc: "Extract action items & decisions", icon: FileText },
     { to: "/planner", label: "Plan Your Day", desc: "Prioritize tasks with AI", icon: CalendarDays },
+    { to: "/coach", label: "Talk to Karabo", desc: "Reset, refocus, breathe", icon: Heart },
     { to: "/memory", label: "Save Context", desc: `${memory.length} memories saved`, icon: Brain },
   ];
 
@@ -51,19 +53,19 @@ function Index() {
     <div className="space-y-8">
       <section
         className="relative overflow-hidden rounded-3xl border border-border p-6 md:p-10"
-        style={{ background: "linear-gradient(135deg, oklch(0.22 0.04 255), oklch(0.18 0.03 250))" }}
+        style={{ background: "linear-gradient(135deg, oklch(0.95 0.02 130), oklch(0.93 0.025 95))" }}
       >
         <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-30" style={{ background: "var(--gradient-primary)" }} />
         <div className="relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Welcome back
+            <Sparkles className="h-3.5 w-3.5" /> A calm start to your day
           </div>
           <h1 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight">
-            Your workplace, supercharged by AI.
+            Hello. Let's take it one step at a time.
           </h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Draft emails, summarize meetings, and plan your day — all in one
-            calm, focused dashboard.
+            Draft thoughtful emails, summarize meetings, plan your day, and
+            check in with Karabo — your gentle workplace coach.
           </p>
         </div>
       </section>
