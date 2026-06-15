@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   FileText,
@@ -8,6 +8,7 @@ import {
   Sparkles,
   CheckCircle2,
   ListChecks,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +38,8 @@ type ActionItem = { task: string; owner: string | null; due: string | null };
 function NotesPage() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<{
     summary: string;
     decisions: string[];
@@ -46,6 +49,68 @@ function NotesPage() {
   const fn = useServerFn(summarizeNotes);
 
   const pii = detectPII(notes);
+
+  async function onFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setParsing(true);
+    try {
+      const chunks: string[] = [];
+      for (const file of Array.from(files)) {
+        const name = file.name.toLowerCase();
+        let text = "";
+        if (name.endsWith(".pdf")) {
+          const pdfjs = await import("pdfjs-dist");
+          // @ts-expect-error vite worker import
+          const worker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
+          pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+          const buf = await file.arrayBuffer();
+          const doc = await pdfjs.getDocument({ data: buf }).promise;
+          const pages: string[] = [];
+          for (let i = 1; i <= doc.numPages; i++) {
+            const page = await doc.getPage(i);
+            const content = await page.getTextContent();
+            pages.push(
+              content.items
+                .map((it: unknown) => (it as { str?: string }).str ?? "")
+                .join(" "),
+            );
+          }
+          text = pages.join("\n\n");
+        } else if (name.endsWith(".docx")) {
+          const mammoth = await import("mammoth/mammoth.browser");
+          const buf = await file.arrayBuffer();
+          const res = await mammoth.extractRawText({ arrayBuffer: buf });
+          text = res.value;
+        } else if (
+          name.endsWith(".txt") ||
+          name.endsWith(".md") ||
+          name.endsWith(".markdown") ||
+          file.type.startsWith("text/")
+        ) {
+          text = await file.text();
+        } else {
+          toast.error(`Unsupported file: ${file.name}`, {
+            description: "Use PDF, DOCX, TXT, or MD.",
+          });
+          continue;
+        }
+        if (text.trim()) chunks.push(`--- ${file.name} ---\n${text.trim()}`);
+      }
+      if (chunks.length) {
+        setNotes((prev) =>
+          prev.trim() ? `${prev}\n\n${chunks.join("\n\n")}` : chunks.join("\n\n"),
+        );
+        toast.success(
+          `Loaded ${chunks.length} file${chunks.length === 1 ? "" : "s"}`,
+        );
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to read file");
+    } finally {
+      setParsing(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   async function onSummarize() {
     if (notes.trim().length < 10) {
@@ -88,10 +153,33 @@ function NotesPage() {
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2 space-y-4 rounded-2xl border border-border bg-card p-5">
           <div className="space-y-1.5">
-            <Label>Raw Meeting Notes</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>Raw Meeting Notes</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.docx,.txt,.md,.markdown,text/*"
+                multiple
+                className="hidden"
+                onChange={(e) => onFiles(e.target.files)}
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => fileRef.current?.click()}
+                disabled={parsing}
+              >
+                {parsing ? (
+                  <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Reading…</>
+                ) : (
+                  <><Upload className="h-3.5 w-3.5 mr-1.5" /> Upload</>
+                )}
+              </Button>
+            </div>
             <Textarea
               rows={16}
-              placeholder="Paste your meeting transcript or notes here…"
+              placeholder="Paste notes here or upload a PDF, DOCX, TXT, or MD file…"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
