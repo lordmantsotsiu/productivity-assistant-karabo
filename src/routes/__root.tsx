@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Karabo — AI Workplace Productivity Assistant" },
+      { name: "twitter:description", content: "AI-powered email drafting, meeting summaries, task planning, and context memory for modern teams." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0b039582-cc04-47f0-805e-a16b45763d55/id-preview-0bca5c72--473df4b4-0329-4a3b-842a-0ac5c542a390.lovable.app-1781527352163.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0b039582-cc04-47f0-805e-a16b45763d55/id-preview-0bca5c72--473df4b4-0329-4a3b-842a-0ac5c542a390.lovable.app-1781527352163.png" },
     ],
     links: [
       {
