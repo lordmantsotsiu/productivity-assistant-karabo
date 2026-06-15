@@ -50,24 +50,27 @@ function PlannerPage() {
   const [tasks, setTasks] = useLocal<Task[]>(KEYS.tasks, []);
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [strategy, setStrategy] = useState("");
   const [loading, setLoading] = useState(false);
   const fn = useServerFn(prioritizeTasks);
 
   function add() {
     if (!title.trim()) return;
+    const dueValue = due ? (dueTime ? `${due}T${dueTime}` : due) : null;
     setTasks((t) => [
       ...t,
       {
         id: crypto.randomUUID(),
         title: title.trim(),
-        due: due || null,
+        due: dueValue,
         done: false,
         createdAt: Date.now(),
       },
     ]);
     setTitle("");
     setDue("");
+    setDueTime("");
   }
 
   function toggle(id: string) {
@@ -149,6 +152,13 @@ function PlannerPage() {
               value={due}
               onChange={(e) => setDue(e.target.value)}
             />
+            <Input
+              type="time"
+              value={dueTime}
+              onChange={(e) => setDueTime(e.target.value)}
+              disabled={!due}
+              placeholder="Time (optional)"
+            />
             <Button onClick={add} className="w-full" variant="secondary">
               <Plus className="h-4 w-4 mr-2" /> Add Task
             </Button>
@@ -228,6 +238,9 @@ function Section({
                 {t.due ? (
                   <div className="text-[11px] text-muted-foreground">
                     Due {new Date(t.due).toLocaleDateString()}
+                    {t.due.includes("T")
+                      ? ` · ${new Date(t.due).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                      : ""}
                   </div>
                 ) : null}
               </div>
