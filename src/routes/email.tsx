@@ -25,7 +25,7 @@ import {
 export const Route = createFileRoute("/email")({
   head: () => ({
     meta: [
-      { title: "Smart Email Generator — CAPACITI" },
+      { title: "Smart Email Generator — Karabo" },
       { name: "description", content: "Draft tone-aware professional emails with AI." },
     ],
   }),

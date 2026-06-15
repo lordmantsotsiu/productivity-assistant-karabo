@@ -32,7 +32,7 @@ export function AppSidebar() {
         </div>
         <div className="min-w-0">
           <div className="text-sm font-bold tracking-tight text-sidebar-foreground">
-            CAPACITI
+            Karabo
           </div>
           <div className="text-[11px] text-muted-foreground -mt-0.5">
             Workplace AI Assistant

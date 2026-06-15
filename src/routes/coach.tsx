@@ -1,18 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Heart, Mic, Send, Loader2, Sparkles } from "lucide-react";
+import { Heart, Mic, MicOff, Send, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader, detectPII, PIIWarning, HumanLoopNotice } from "@/components/Disclaimers";
 import { coachReply } from "@/lib/ai.functions";
+import { useLocal } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/coach")({
   head: () => ({
     meta: [
-      { title: "Coach Karabo — CAPACITI" },
+      { title: "Coach Karabo" },
       { name: "description", content: "A calm workplace well-being coach to help you reset, refocus, and breathe." },
     ],
   }),
@@ -35,13 +36,49 @@ const WELCOME: Msg = {
 };
 
 function CoachPage() {
-  const [messages, setMessages] = useState<Msg[]>([WELCOME]);
+  const [messages, setMessages] = useLocal<Msg[]>("ai_coach_messages", [WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [sttSupported, setSttSupported] = useState(true);
+  const recognitionRef = useRef<any>(null);
   const fn = useServerFn(coachReply);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pii = detectPII(input);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SR =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setSttSupported(false);
+      return;
+    }
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = "en-US";
+    let finalBuffer = "";
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalBuffer += t + " ";
+        else interim += t;
+      }
+      setInput((finalBuffer + interim).trim());
+    };
+    rec.onerror = (e: any) => {
+      toast.error(`Mic error: ${e.error ?? "unknown"}`);
+      setRecording(false);
+    };
+    rec.onend = () => setRecording(false);
+    recognitionRef.current = { rec, reset: () => (finalBuffer = "") };
+    return () => {
+      try { rec.stop(); } catch {}
+    };
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -67,9 +104,36 @@ function CoachPage() {
     }
   }
 
-  function toggleMic() {
-    setRecording((r) => !r);
-    toast.info(recording ? "Recording stopped (simulated)" : "Listening… (simulated voice capture)");
+  async function toggleMic() {
+    if (!sttSupported || !recognitionRef.current) {
+      toast.error("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    const { rec, reset } = recognitionRef.current;
+    if (recording) {
+      try { rec.stop(); } catch {}
+      setRecording(false);
+      return;
+    }
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      toast.error("Microphone permission denied.");
+      return;
+    }
+    reset();
+    try {
+      rec.start();
+      setRecording(true);
+      toast.info("Listening… speak now.");
+    } catch (err) {
+      toast.error("Could not start microphone.");
+    }
+  }
+
+  function clearChat() {
+    setMessages([WELCOME]);
+    toast.success("Chat cleared.");
   }
 
   return (
@@ -82,6 +146,14 @@ function CoachPage() {
 
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         <div className="rounded-3xl border border-border bg-card overflow-hidden flex flex-col h-[70vh]">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-background/40">
+            <span className="text-xs text-muted-foreground">
+              {messages.length - 1} message{messages.length - 1 === 1 ? "" : "s"} · saved on this device
+            </span>
+            <Button variant="ghost" size="sm" onClick={clearChat} className="h-7 text-xs">
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
+            </Button>
+          </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
             {messages.map((m, i) => (
               <div key={i} className={cn("flex gap-3", m.role === "user" && "flex-row-reverse")}>
@@ -152,7 +224,7 @@ function CoachPage() {
                 onClick={toggleMic}
                 aria-label="Toggle microphone"
               >
-                <Mic className="h-4 w-4" />
+                {recording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
               <Button
                 onClick={() => send(input)}
