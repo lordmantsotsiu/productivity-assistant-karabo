@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader, detectPII, PIIWarning, HumanLoopNotice } from "@/components/Disclaimers";
 import { coachReply } from "@/lib/ai.functions";
-import { useLocal } from "@/lib/store";
+import { useLocal, getUserSnapshot } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export const Route = createFileRoute("/coach")({
   head: () => ({
@@ -92,7 +94,12 @@ function CoachPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fn({ data: { messages: next.map((m) => ({ role: m.role, content: m.content })) } });
+      const res = await fn({
+        data: {
+          messages: next.map((m) => ({ role: m.role, content: m.content })),
+          context: getUserSnapshot(),
+        },
+      });
       setMessages((m) => [...m, { role: "assistant", content: res.text }]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed";
@@ -177,7 +184,15 @@ function CoachPage() {
                       : "bg-primary/90 text-primary-foreground",
                   )}
                 >
-                  {m.content}
+                  {m.role === "assistant" ? (
+                    <div className="space-y-2 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-2 [&_strong]:font-semibold [&_strong]:text-foreground [&_code]:rounded [&_code]:bg-background/60 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_a]:underline [&_a]:text-primary">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {m.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{m.content}</p>
+                  )}
                 </div>
               </div>
             ))}
