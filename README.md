@@ -55,17 +55,3 @@ Most modern productivity dashboards are cluttered, flashing, and high-contrastâ€
 * **UI Components & Icons:** Lucide React, Shadcn/ui (Tailwind configurations)
 * **Voice Integration:** Native Browser Web Speech API (`SpeechRecognition`)
 * **Environment & Deployment:** Managed via Lovable.ai, packaged with Vite
-
----
-
-## ðŸš€ Getting Started
-
-### Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) installed on your machine.
-
-### Installation & Local Setup
-
-1. **Clone the repository:**
-```bash
-   git clone [https://github.com/YOUR_USERNAME/productivity-assistant-karabo.git](https://github.com/YOUR_USERNAME/productivity-assistant-karabo.git)
-   cd productivity-assistant-karabo
