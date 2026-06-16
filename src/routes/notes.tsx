@@ -197,7 +197,7 @@ function NotesPage() {
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pdf,.docx,.txt,.md,.markdown,text/*"
+                accept="*/*"
                 multiple
                 className="hidden"
                 onChange={(e) => onFiles(e.target.files)}
@@ -218,7 +218,7 @@ function NotesPage() {
             </div>
             <Textarea
               rows={16}
-              placeholder="Paste notes here or upload a PDF, DOCX, TXT, or MD file…"
+              placeholder="Paste notes here or upload PDF, DOCX, PPTX, TXT, MD, CSV, JSON…"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
