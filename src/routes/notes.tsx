@@ -85,18 +85,56 @@ function NotesPage() {
           const buf = await file.arrayBuffer();
           const res = await mammoth.extractRawText({ arrayBuffer: buf });
           text = res.value;
-        } else if (
-          name.endsWith(".txt") ||
-          name.endsWith(".md") ||
-          name.endsWith(".markdown") ||
-          file.type.startsWith("text/")
-        ) {
-          text = await file.text();
-        } else {
-          toast.error(`Unsupported file: ${file.name}`, {
-            description: "Use PDF, DOCX, TXT, or MD.",
+        } else if (name.endsWith(".pptx")) {
+          const JSZip = (await import("jszip")).default;
+          const zip = await JSZip.loadAsync(await file.arrayBuffer());
+          const slidePaths = Object.keys(zip.files)
+            .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+            .sort((a, b) => {
+              const na = parseInt(a.match(/slide(\d+)\.xml/)![1], 10);
+              const nb = parseInt(b.match(/slide(\d+)\.xml/)![1], 10);
+              return na - nb;
+            });
+          const slides: string[] = [];
+          for (const p of slidePaths) {
+            const xml = await zip.files[p].async("string");
+            const matches = xml.match(/<a:t[^>]*>([\s\S]*?)<\/a:t>/g) ?? [];
+            const slideText = matches
+              .map((m) => m.replace(/<[^>]+>/g, ""))
+              .join(" ")
+              .replace(/&amp;/g, "&")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'");
+            if (slideText.trim()) slides.push(slideText.trim());
+          }
+          text = slides.join("\n\n");
+        } else if (name.endsWith(".doc")) {
+          toast.error(`Legacy .doc not supported: ${file.name}`, {
+            description: "Save as .docx and try again.",
           });
           continue;
+        } else {
+          // Fallback: try reading as text (covers txt, md, csv, json, html, rtf, log, srt, etc.)
+          try {
+            text = await file.text();
+            // Strip non-printable bytes that indicate a binary file
+            const printable = text.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "");
+            if (
+              text.length > 0 &&
+              printable.length / text.length < 0.7 &&
+              !file.type.startsWith("text/")
+            ) {
+              toast.error(`Can't read ${file.name}`, {
+                description: "Binary format not supported. Try PDF, DOCX, PPTX, or a text file.",
+              });
+              continue;
+            }
+          } catch {
+            toast.error(`Can't read ${file.name}`);
+            continue;
+          }
         }
         if (text.trim()) chunks.push(`--- ${file.name} ---\n${text.trim()}`);
       }
