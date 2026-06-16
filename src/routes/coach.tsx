@@ -45,6 +45,7 @@ function CoachPage() {
   const [recording, setRecording] = useState(false);
   const [sttSupported, setSttSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  const wantListeningRef = useRef(false);
   const fn = useServerFn(coachReply);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pii = detectPII(input);
@@ -58,10 +59,12 @@ function CoachPage() {
       setSttSupported(false);
       return;
     }
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     const rec = new SR();
-    rec.continuous = true;
+    // iOS/mobile Safari does not honor continuous=true reliably; we auto-restart instead.
+    rec.continuous = !isMobile;
     rec.interimResults = true;
-    rec.lang = "en-US";
+    rec.lang = navigator.language || "en-US";
     let finalBuffer = "";
     rec.onresult = (e: any) => {
       let interim = "";
@@ -73,12 +76,29 @@ function CoachPage() {
       setInput((finalBuffer + interim).trim());
     };
     rec.onerror = (e: any) => {
-      toast.error(`Mic error: ${e.error ?? "unknown"}`);
+      const err = e.error ?? "unknown";
+      // 'no-speech' / 'aborted' on mobile are benign; auto-restart loop handles them.
+      if (err === "no-speech" || err === "aborted") return;
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        toast.error("Microphone permission denied. Enable mic access in your browser settings.");
+        wantListeningRef.current = false;
+        setRecording(false);
+        return;
+      }
+      toast.error(`Mic error: ${err}`);
+      wantListeningRef.current = false;
       setRecording(false);
     };
-    rec.onend = () => setRecording(false);
+    rec.onend = () => {
+      if (wantListeningRef.current) {
+        try { rec.start(); } catch {}
+      } else {
+        setRecording(false);
+      }
+    };
     recognitionRef.current = { rec, reset: () => (finalBuffer = "") };
     return () => {
+      wantListeningRef.current = false;
       try { rec.stop(); } catch {}
     };
   }, []);
@@ -116,6 +136,7 @@ function CoachPage() {
     }
     const { rec, reset } = recognitionRef.current;
     if (recording) {
+      wantListeningRef.current = false;
       try { rec.stop(); } catch {}
       setRecording(false);
       return;
@@ -128,10 +149,12 @@ function CoachPage() {
     }
     reset();
     try {
+      wantListeningRef.current = true;
       rec.start();
       setRecording(true);
       toast.info("Listening… speak now.");
     } catch (err) {
+      wantListeningRef.current = false;
       toast.error("Could not start microphone.");
     }
   }
